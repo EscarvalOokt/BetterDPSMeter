@@ -1,0 +1,24 @@
+<Project>
+    <PropertyGroup>
+        <!--
+        Set this to the root directory of your local Terraria installation.
+        Example:
+        C:\Games\Terraria
+        -->
+        <TerrariaDirectory>C:\Path\To\Terraria</TerrariaDirectory>
+
+        <!--
+        Override only if Microsoft.Xna.Framework.Content.Pipeline.dll is not located
+        in the Terraria installation directory.
+        -->
+        <!--
+        <XnaContentPipelineDll>C:\Path\To\Microsoft.Xna.Framework.Content.Pipeline.dll</XnaContentPipelineDll>
+        -->
+
+        <!-- Enable automatic deployment after a successful build when desired. -->
+        <DeployToGame>false</DeployToGame>
+
+        <!-- Development deployment directory used when DeployToGame is true. -->
+        <TerrariaModDirectory>$(TerrariaDirectory)\TerrariaModder\mods\better-dps-meter</TerrariaModDirectory>
+    </PropertyGroup>
+</Project>

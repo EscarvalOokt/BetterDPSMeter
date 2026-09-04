@@ -1,0 +1,14 @@
+{
+    "id": "better-dps-meter",
+    "name": "Better DPS Meter",
+    "version": "1.1.0",
+    "author": "Escarval",
+    "description": "Adds a configurable DPS overlay with optional combat stats and post-combat result display.",
+    "entry_dll": "BetterDPSMeter.dll",
+    "tags": [
+        "ui",
+        "qol",
+        "combat"
+    ],
+    "framework_version": ">=0.4.0"
+}
