@@ -31,9 +31,6 @@ namespace BetterDPSMeter
             if (shouldRequireDpsMeter)
                 return;
 
-            double currentTimeSeconds = DpsTrackerRepository.NowSeconds();
-            DpsTrackerRepository.Update(player, currentTimeSeconds, mod.WindowSeconds, mod.CombatTimeoutSeconds);
-
             DpsCombatTracker tracker = DpsTrackerRepository.Get(player);
             DpsDisplaySnapshot snapshot = tracker.DisplaySnapshot;
 

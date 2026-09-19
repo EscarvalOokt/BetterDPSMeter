@@ -1,4 +1,5 @@
 using System;
+using Terraria;
 using TerrariaModder.Core;
 using TerrariaModder.Core.Events;
 using TerrariaModder.Core.Logging;
@@ -22,7 +23,7 @@ namespace BetterDPSMeter
 
         public string Id => "better-dps-meter";
         public string Name => "Better DPS Meter";
-        public string Version => "1.1.0";
+        public string Version => "1.2.0";
 
         public void Initialize(ModContext context)
         {
@@ -35,6 +36,7 @@ namespace BetterDPSMeter
             LoadConfig();
 
             _overlay = new DpsDisplayOverlay(this);
+            FrameEvents.OnPostUpdate += HandlePostUpdate;
             FrameEvents.OnUIOverlay += HandleUiOverlay;
 
             _logger.Info(Name + " v" + Version + " initialized!");
@@ -42,6 +44,7 @@ namespace BetterDPSMeter
 
         public void Unload()
         {
+            FrameEvents.OnPostUpdate -= HandlePostUpdate;
             FrameEvents.OnUIOverlay -= HandleUiOverlay;
 
             DpsTrackerRepository.Clear();
@@ -84,6 +87,17 @@ namespace BetterDPSMeter
             RequireDpsMeter = _config.RequireDpsMeter;
             WindowSeconds = _config.WindowSeconds;
             CombatTimeoutSeconds = _config.CombatTimeoutSeconds;
+        }
+
+        private void HandlePostUpdate()
+        {
+            Player player = Main.player[Main.myPlayer];
+            bool isPlayerUnavailable = player == null || !player.active;
+            if (isPlayerUnavailable)
+                return;
+
+            double currentTimeSeconds = DpsTrackerRepository.NowSeconds();
+            DpsTrackerRepository.Update(player, currentTimeSeconds, WindowSeconds, CombatTimeoutSeconds);
         }
 
         private void HandleUiOverlay()

@@ -21,7 +21,7 @@ namespace BetterDPSMeter
         [Client]
         [Label("DPS Window (seconds)")]
         [Description("How many seconds of damage history are used for the average DPS calculation.")]
-        [Range(2, 60)]
+        [Range(2, DpsTrackingConstants.MaxWindowSeconds)]
         public int WindowSeconds { get; set; } = 10;
 
         [Client]

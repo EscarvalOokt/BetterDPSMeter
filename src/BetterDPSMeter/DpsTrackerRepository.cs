@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Terraria;
 
@@ -24,14 +23,14 @@ namespace BetterDPSMeter
         {
             DpsCombatTracker tracker = Get(player);
             tracker.WindowSeconds = windowSeconds;
-            tracker.AddDamage(now, damage, timeoutSeconds);
+            tracker.AddDamage(now, damage, timeoutSeconds, Main.TARGET_FRAME_TIME);
         }
 
         public static void Update(Player player, double now, double windowSeconds, double timeoutSeconds)
         {
             DpsCombatTracker tracker = Get(player);
             tracker.WindowSeconds = windowSeconds;
-            tracker.UpdateState(now, timeoutSeconds);
+            tracker.UpdateState(now, timeoutSeconds, Main.TARGET_FRAME_TIME);
         }
 
         public static void Clear()
@@ -41,7 +40,7 @@ namespace BetterDPSMeter
 
         public static double NowSeconds()
         {
-            return DateTime.UtcNow.Ticks / (double)TimeSpan.TicksPerSecond;
+            return Main.GameUpdateCount * Main.TARGET_FRAME_TIME;
         }
     }
 }

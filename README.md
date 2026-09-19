@@ -1,34 +1,38 @@
 # Better DPS Meter
 
-*Track recent combat damage with a configurable DPS overlay.*
+![Better DPS Meter preview with sample combat statistics](assets/nexus/better-dps-meter-preview.png)
 
-Better DPS Meter adds a configurable combat overlay that tracks the local player's recent damage and displays an average DPS value.
+**Track recent combat damage with a configurable DPS overlay.**
 
-The overlay can also show hit count, total damage, average damage per hit, combat timeout, and the last combat result. By default, it is only shown while the vanilla DPS Meter effect is active.
+[Download on Nexus Mods](https://www.nexusmods.com/terraria/mods/166)
+
+Better DPS Meter adds a configurable combat overlay that tracks the local player's recent damage and displays a rolling DPS value during combat.
+
+The overlay can also show hit count, total damage, average damage per hit, combat timeout, and the final result of the completed combat session. By default, it is only shown while the vanilla DPS Meter effect is active.
 
 ## Features
 
 - Display rolling average DPS for the local player.
 - Optionally show hits, total damage, and average damage per hit.
-- Keep the final combat values visible after combat ends.
+- Keep the final full-session combat result visible after combat ends.
 - Configure the DPS averaging window.
 - Configure how long the tracker remains in combat after the last hit.
 - Optionally require the vanilla DPS Meter effect before showing the overlay.
 
 ## How it works
 
-Damage reported for the local player is accumulated in a rolling time window.
+During combat, damage reported for the local player is accumulated in a configurable rolling time window. The live DPS, hit count, and damage values are calculated from the damage currently inside that window.
 
-The displayed DPS is calculated from damage currently inside that window. Combat remains active for a configurable period after the last recorded hit, after which the overlay marks the displayed values as the last combat result.
+Combat remains active for a configurable period after the last recorded hit. When that timeout expires, Better DPS Meter replaces the rolling values with a final aggregate for the completed combat session. Final DPS uses the full session damage over the elapsed gameplay time from the first accepted hit to the last accepted hit, so the post-hit combat timeout does not reduce the final result.
 
 ## Settings
 
 Better DPS Meter exposes its settings through the TerrariaModder configuration system.
 
 - **Show Extra Info** — shows hit count, total damage, and average damage per hit. Default: enabled.
-- **Require DPS Meter** — only shows the overlay while the vanilla DPS Meter effect is active. Default: enabled.
-- **DPS Window (seconds)** — controls how many seconds of recent damage are used for the DPS calculation. Range: 2–60 seconds. Default: 10.
-- **Combat Timeout (seconds)** — controls how long combat remains active after the last hit. Range: 0.5–30 seconds. Default: 3.0.
+- **Require DPS Meter** — only shows the overlay while the DPS Meter item effect is active. Default: enabled.
+- **DPS Window (seconds)** — controls how many seconds of recent damage are used for the live DPS calculation. Range: 2–60 seconds. Default: 10.
+- **Combat Timeout (seconds)** — controls how long after the last hit the tracker is still considered in combat. Range: 0.5–30 seconds. Default: 3.0.
 
 ## Requirements
 
@@ -106,7 +110,7 @@ When `DeployToGame` is enabled, the production project copies `BetterDPSMeter.dl
 dotnet test tests/BetterDPSMeter.Tests/BetterDPSMeter.Tests.csproj -c Release
 ```
 
-The initial automated suite contains a pipeline smoke test. Deterministic project-owned DPS calculations are suitable for future automated coverage, while Terraria, TerrariaModder, Harmony, and in-game UI behavior should be validated separately in game.
+The automated suite includes pipeline validation and deterministic regression coverage for the project-owned combat tracker, including rolling-window behavior, combat-session transitions, and final-session aggregation. Terraria, TerrariaModder, Harmony, gameplay-clock behavior, and in-game UI integration are validated separately through runtime acceptance.
 
 ## Repository structure
 

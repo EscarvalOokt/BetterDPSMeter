@@ -1,9 +1,9 @@
 {
     "id": "better-dps-meter",
     "name": "Better DPS Meter",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "author": "Escarval",
-    "description": "Adds a configurable DPS overlay with optional combat stats and post-combat result display.",
+    "description": "Shows your combat DPS, damage stats, and final fight results in a configurable overlay.",
     "entry_dll": "BetterDPSMeter.dll",
     "tags": [
         "ui",
