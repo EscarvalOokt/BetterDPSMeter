@@ -15,7 +15,7 @@ namespace BetterDPSMeter
 
         [Client]
         [Label("Require DPS Meter")]
-        [Description("If enabled, the overlay is only shown while the DPS Meter item effect is active.")]
+        [Description("When enabled, the DPS Meter item effect is required to record hits and show the overlay.")]
         public bool RequireDpsMeter { get; set; } = true;
 
         [Client]

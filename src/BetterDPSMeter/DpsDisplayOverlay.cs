@@ -7,16 +7,9 @@ namespace BetterDPSMeter
 {
     internal sealed class DpsDisplayOverlay(BetterDPSMeterMod mod)
     {
-        private readonly int _positionX = 500;
-        private readonly int _positionY = 20;
-        private readonly int _textLineHeight = 16;
-
         public void Draw()
         {
-            if (Main.gameMenu)
-                return;
-
-            if (Main.gamePaused)
+            if (Main.gameMenu || Main.gamePaused || Main.mapFullscreen)
                 return;
 
             Player player = Main.player[Main.myPlayer];
@@ -35,7 +28,8 @@ namespace BetterDPSMeter
             DpsDisplaySnapshot snapshot = tracker.DisplaySnapshot;
 
             List<(string Text, Color4 Color)> displayLines = BuildMainLines(snapshot);
-            DrawMixedColumn(displayLines, _positionX, _positionY, _textLineHeight);
+            (int x, int y) = DpsOverlayLayout.GetPosition(Main.screenWidth, Main.screenHeight, player.buffType);
+            DrawMixedColumn(displayLines, x, y, DpsOverlayLayout.LineSpacing);
         }
 
         private List<(string Text, Color4 Color)> BuildMainLines(DpsDisplaySnapshot snapshot)
@@ -48,7 +42,7 @@ namespace BetterDPSMeter
                     displayLines.Add(line);
             }
 
-            bool shouldShowStatus = snapshot.IsLastCombatResult || mod.ShowExtraInfo;
+            bool shouldShowStatus = snapshot.IsLastCombatResult || (mod.ShowExtraInfo && snapshot.TimeoutRemaining > 0);
             if (shouldShowStatus)
                 displayLines.Add(BuildStatusLine(snapshot));
 
@@ -59,8 +53,9 @@ namespace BetterDPSMeter
         {
             if (mod.ShowExtraInfo)
             {
-                return ("DPS: " + snapshot.AverageDps + " / " + snapshot.WindowSecondsCovered.ToString("F1") + "s",
-                    UIColors.Text);
+                double duration = snapshot.WindowSecondsCovered;
+                string durationFormat = duration is > 0 and < 0.1 ? "F3" : "F1";
+                return ("DPS: " + snapshot.AverageDps + " / " + duration.ToString(durationFormat) + "s", UIColors.Text);
             }
 
             return ("DPS: " + snapshot.AverageDps, UIColors.Text);
@@ -68,8 +63,8 @@ namespace BetterDPSMeter
 
         private List<(string Text, Color4 Color)> BuildExtraLines(DpsDisplaySnapshot snapshot)
         {
-            int averageDamagePerHit = snapshot.HitsInWindow > 0
-                ? (int)Math.Round((double)snapshot.DamageInWindow / snapshot.HitsInWindow)
+            long averageDamagePerHit = snapshot.HitsInWindow > 0
+                ? (long)Math.Round((double)snapshot.DamageInWindow / snapshot.HitsInWindow)
                 : 0;
 
             return

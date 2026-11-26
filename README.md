@@ -1,14 +1,12 @@
 # Better DPS Meter
 
-![Better DPS Meter preview with sample combat statistics](assets/nexus/better-dps-meter-preview.png)
+![Better DPS Meter preview with sample combat statistics](assets/nexus/Preview.png)
 
 **Track recent combat damage with a configurable DPS overlay.**
 
-[Download on Nexus Mods](https://www.nexusmods.com/terraria/mods/166)
-
 Better DPS Meter adds a configurable combat overlay that tracks the local player's recent damage and displays a rolling DPS value during combat.
 
-The overlay can also show hit count, total damage, average damage per hit, combat timeout, and the final result of the completed combat session. By default, it is only shown while the vanilla DPS Meter effect is active.
+The overlay can also show hit count, total damage, average damage per hit, combat timeout, and the final result of the completed combat session. By default, the vanilla DPS Meter effect is required to record hits and show the overlay.
 
 ## Features
 
@@ -17,7 +15,7 @@ The overlay can also show hit count, total damage, average damage per hit, comba
 - Keep the final full-session combat result visible after combat ends.
 - Configure the DPS averaging window.
 - Configure how long the tracker remains in combat after the last hit.
-- Optionally require the vanilla DPS Meter effect before showing the overlay.
+- Optionally track hits and show the overlay without the vanilla DPS Meter effect.
 
 ## How it works
 
@@ -25,108 +23,77 @@ During combat, damage reported for the local player is accumulated in a configur
 
 Combat remains active for a configurable period after the last recorded hit. When that timeout expires, Better DPS Meter replaces the rolling values with a final aggregate for the completed combat session. Final DPS uses the full session damage over the elapsed gameplay time from the first accepted hit to the last accepted hit, so the post-hit combat timeout does not reduce the final result.
 
+The overlay is hidden in the main menu, while the game is paused, and while the inventory or full-screen map is open. While gameplay continues behind the inventory or map, the tracker keeps counting hits and updating the combat timeout. When you close the inventory or map, the overlay shows the current stats or the final result if combat has ended.
+
+At a width of 1024 UI units or less (after UI scaling), the overlay lines up with the left edge of the buff icons, above the chat. It reserves space for all five HUD lines and the ten visible chat lines, so its position stays stable as messages fade or combat ends. Wider layouts use the original position near the top of the screen.
+
+If the gap between the buff timers and chat is too short for five lines, the overlay returns to its top position and can overlap the health display. At 800×600 and 100% UI scale, three rows of buffs fit. A fourth row (34 or more active buffs) moves the overlay to the top.
+
 ## Settings
 
-Better DPS Meter exposes its settings through the TerrariaModder configuration system.
+Press **F6** and select **Better DPS Meter** to open its settings.
 
-- **Show Extra Info** — shows hit count, total damage, and average damage per hit. Default: enabled.
-- **Require DPS Meter** — only shows the overlay while the DPS Meter item effect is active. Default: enabled.
+- **Show Extra Info** — shows the time span used for DPS, hit count, total damage, average damage per hit, and a countdown while combat is active. Enabled by default. The final **Combat Ended** label is visible with either setting.
+- **Require DPS Meter** — requires the accessory effect to record hits and show the overlay. If you gain the effect mid-fight, tracking starts with your next hit. Enabled by default.
 - **DPS Window (seconds)** — controls how many seconds of recent damage are used for the live DPS calculation. Range: 2–60 seconds. Default: 10.
 - **Combat Timeout (seconds)** — controls how long after the last hit the tracker is still considered in combat. Range: 0.5–30 seconds. Default: 3.0.
 
 ## Requirements
 
-- Terraria 1.4.5.8
-- TerrariaModder 0.4.0 or newer
+- **Terraria 1.4.6** for Windows.
+- **TerrariaModder Core 0.4.3 or newer.** Choose a compatible Core release from [Nexus Mods](https://www.nexusmods.com/terraria/mods/135?tab=files) or [GitHub Releases](https://github.com/Inidar1/terraria-modder/releases).
+- [.NET Framework 4.8 Runtime](https://dotnet.microsoft.com/en-us/download/dotnet-framework/net48).
 
 ## Installation
 
-Copy the `better-dps-meter` mod folder into:
+1. Close Terraria and install any missing dependencies listed under [Requirements](#requirements). For a manual TerrariaModder Core installation, extract the Core archive into the folder containing `Terraria.exe`.
+2. Download the Better DPS Meter archive for your Terraria version.
+
+   - On [Nexus Mods](https://www.nexusmods.com/terraria/mods/166?tab=files), select **Manual download** for the main file.
+   - On the [latest GitHub release](https://github.com/EscarvalOokt/BetterDPSMeter/releases/latest), download the packaged mod from **Assets**.
+
+3. In your Terraria installation folder, open `TerrariaModder\mods\`. Create the `mods` folder if needed.
+4. Open the mod archive and copy its `better-dps-meter` folder into `mods`. When updating, replace the existing `BetterDPSMeter.dll` and `manifest.json` with the copies from the new archive.
+5. Run `TerrariaInjector.exe` from the folder containing `Terraria.exe`, or launch the modded game from TerrariaModder Vault.
+6. Enter a world with the vanilla DPS Meter effect active and hit an enemy. The overlay shows your current DPS. With the default settings, **Combat Ended** and the final DPS appear after three seconds of gameplay without another hit.
+
+After installation, the mod files should be in the following locations.
 
 ```text
-Terraria/TerrariaModder/mods/
+Terraria\
+├── Terraria.exe
+├── TerrariaInjector.exe
+└── TerrariaModder\
+    └── mods\
+        └── better-dps-meter\
+            ├── BetterDPSMeter.dll
+            └── manifest.json
 ```
-
-The installed directory should contain:
-
-```text
-better-dps-meter/
-├── BetterDPSMeter.dll
-└── manifest.json
-```
-
-Launch Terraria using the TerrariaModder installation normally used for the game.
 
 ## Compatibility
 
-The current implementation tracks damage for the local player and keeps its combat data in memory.
+### Existing characters and worlds
 
-It does not add persistent character or world content. Project-owned tracking data is cleared on world load and world unload, so the mod does not require project-owned save migration when added to or removed from existing characters or worlds.
+You can use Better DPS Meter with an existing character and world.
 
-Multiplayer behavior has not been separately validated by the current project documentation.
+### Removing the mod
 
-## Development
+Close Terraria and remove the `better-dps-meter` folder from `TerrariaModder\mods\`. You can continue playing with the same character and world without save cleanup.
 
-### Prerequisites
+### Multiplayer
 
-- Terraria 1.4.5.8 installed locally.
-- TerrariaModder 0.4.0 or newer installed locally.
-- .NET Framework 4.8 Developer Pack and a compatible .NET SDK/build environment.
+Better DPS Meter is a client-only mod. The overlay tracks damage for your local character. Multiplayer behavior has not been separately verified.
 
-### Local configuration
+### Saved progress
 
-Copy:
+Combat statistics stay in memory while you are in the world. Leaving the world clears the current fight and the last combat result. TerrariaModder saves your mod settings.
 
-```text
-docs/BetterDPSMeter.Local.props.example
-```
+### Other mods
 
-to:
-
-```text
-src/BetterDPSMeter.Local.props
-```
-
-Then configure:
-
-- `TerrariaDirectory` — root directory of the local Terraria installation.
-- `XnaContentPipelineDll` — optional override for `Microsoft.Xna.Framework.Content.Pipeline.dll` if it is not located in the Terraria installation directory.
-- `DeployToGame` — set to `true` to enable post-build deployment.
-- `TerrariaModDirectory` — target `TerrariaModder/mods/better-dps-meter` directory.
-
-The local props file contains machine-specific paths and is intentionally excluded from Git.
-
-### Build
-
-```bash
-dotnet build src/BetterDPSMeter.sln -c Release
-```
-
-When `DeployToGame` is enabled, the production project copies `BetterDPSMeter.dll` and `mod/manifest.json` to the configured TerrariaModder mod directory after a successful build.
-
-### Tests
-
-```bash
-dotnet test tests/BetterDPSMeter.Tests/BetterDPSMeter.Tests.csproj -c Release
-```
-
-The automated suite includes pipeline validation and deterministic regression coverage for the project-owned combat tracker, including rolling-window behavior, combat-session transitions, and final-session aggregation. Terraria, TerrariaModder, Harmony, gameplay-clock behavior, and in-game UI integration are validated separately through runtime acceptance.
-
-## Repository structure
-
-```text
-docs/    Project documentation and development configuration examples
-mod/     TerrariaModder package metadata
-src/     Production source and solution
-tests/   Automated tests
-```
+Better DPS Meter counts damage that Terraria reports to its built-in DPS meter. Damage from a mod that bypasses that mechanism may be missing from the overlay.
 
 ## Technical documentation
 
+- [Development guide](docs/development.md)
 - [Architecture](docs/architecture.md)
 - [Testing policy](docs/testing.md)
-
-## Links
-
-* [Nexus Mods](https://www.nexusmods.com/terraria/mods/166)
-* [GitHub Releases](https://github.com/EscarvalOokt/BetterDPSMeter/releases)

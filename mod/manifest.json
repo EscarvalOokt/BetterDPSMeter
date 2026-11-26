@@ -1,14 +1,17 @@
 {
     "id": "better-dps-meter",
     "name": "Better DPS Meter",
-    "version": "1.2.0",
+    "version": "1.3.0",
     "author": "Escarval",
     "description": "Shows your combat DPS, damage stats, and final fight results in a configurable overlay.",
     "entry_dll": "BetterDPSMeter.dll",
+    "homepage": "https://www.nexusmods.com/terraria/mods/166",
+    "multiplayer": "client-only",
     "tags": [
         "ui",
         "qol",
         "combat"
     ],
-    "framework_version": ">=0.4.0"
+    "terraria_version": "1.4.6",
+    "framework_version": ">=0.4.3"
 }

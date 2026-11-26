@@ -1,10 +1,7 @@
 <Project>
+    <!-- Copy this file to src/BetterDPSMeter.Local.props. -->
     <PropertyGroup>
-        <!--
-        Set this to the root directory of your local Terraria installation.
-        Example:
-        C:\Games\Terraria
-        -->
+        <!-- Set TerrariaDirectory to the folder containing Terraria.exe. -->
         <TerrariaDirectory>C:\Path\To\Terraria</TerrariaDirectory>
 
         <!--
@@ -18,7 +15,7 @@
         <!-- Enable automatic deployment after a successful build when desired. -->
         <DeployToGame>false</DeployToGame>
 
-        <!-- Development deployment directory used when DeployToGame is true. -->
+        <!-- The project derives this path from TerrariaDirectory. Change it only to deploy to a different folder. -->
         <TerrariaModDirectory>$(TerrariaDirectory)\TerrariaModder\mods\better-dps-meter</TerrariaModDirectory>
     </PropertyGroup>
 </Project>

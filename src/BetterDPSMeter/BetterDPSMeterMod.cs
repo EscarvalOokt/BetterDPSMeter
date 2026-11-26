@@ -23,7 +23,7 @@ namespace BetterDPSMeter
 
         public string Id => "better-dps-meter";
         public string Name => "Better DPS Meter";
-        public string Version => "1.2.0";
+        public string Version => "1.3.0";
 
         public void Initialize(ModContext context)
         {

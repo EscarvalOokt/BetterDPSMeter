@@ -29,6 +29,43 @@ namespace BetterDPSMeter.Tests.Combat
         }
 
         [Test]
+        public void DamageAndDps_PreserveTotalsAboveInt32InLiveAndFinalResults()
+        {
+            var tracker = new DpsCombatTracker();
+            tracker.AddDamage(0.0, 1_100_000_000, 3.0, MinimumDurationSeconds);
+            tracker.AddDamage(1.0, 1_100_000_000, 3.0, MinimumDurationSeconds);
+
+            DpsDisplaySnapshot snapshot = tracker.DisplaySnapshot;
+            Assert.That(snapshot.IsLastCombatResult, Is.False);
+            Assert.That(snapshot.DamageInWindow, Is.EqualTo(2_200_000_000L));
+            Assert.That(snapshot.AverageDps, Is.EqualTo(2_200_000_000L));
+
+            tracker.UpdateState(4.0, 3.0, MinimumDurationSeconds);
+
+            Assert.That(snapshot.IsLastCombatResult, Is.True);
+            Assert.That(snapshot.DamageInWindow, Is.EqualTo(2_200_000_000L));
+            Assert.That(snapshot.AverageDps, Is.EqualTo(2_200_000_000L));
+        }
+
+        [Test]
+        public void AverageDps_CanExceedInt32FromOneHitWithinOneTick()
+        {
+            const double tickSeconds = 1.0 / 60.0;
+            var tracker = new DpsCombatTracker();
+            tracker.AddDamage(0.0, 40_000_000, 3.0, tickSeconds);
+            tracker.UpdateState(tickSeconds, 3.0, tickSeconds);
+
+            DpsDisplaySnapshot snapshot = tracker.DisplaySnapshot;
+            Assert.That(snapshot.IsLastCombatResult, Is.False);
+            Assert.That(snapshot.AverageDps, Is.EqualTo(2_400_000_000L));
+
+            tracker.UpdateState(3.0, 3.0, tickSeconds);
+
+            Assert.That(snapshot.IsLastCombatResult, Is.True);
+            Assert.That(snapshot.AverageDps, Is.EqualTo(2_400_000_000L));
+        }
+
+        [Test]
         public void UpdateState_RefreshesSnapshotAndTrimsExpiredDamageBetweenHits()
         {
             var tracker = new DpsCombatTracker
@@ -39,9 +76,13 @@ namespace BetterDPSMeter.Tests.Combat
             tracker.AddDamage(0.0, 100, 5.0, MinimumDurationSeconds);
             tracker.AddDamage(1.0, 200, 5.0, MinimumDurationSeconds);
 
-            tracker.UpdateState(2.1, 5.0, MinimumDurationSeconds);
+            tracker.UpdateState(2.0, 5.0, MinimumDurationSeconds);
 
             DpsDisplaySnapshot snapshot = tracker.DisplaySnapshot;
+            Assert.That(snapshot.HitsInWindow, Is.EqualTo(2));
+            Assert.That(snapshot.DamageInWindow, Is.EqualTo(300));
+
+            tracker.UpdateState(2.1, 5.0, MinimumDurationSeconds);
 
             Assert.That(snapshot.HitsInWindow, Is.EqualTo(1));
             Assert.That(snapshot.DamageInWindow, Is.EqualTo(200));
@@ -235,6 +276,34 @@ namespace BetterDPSMeter.Tests.Combat
         }
 
         [Test]
+        public void AddDamage_OnWindowExpansionIncludesBoundaryHitUntilItExpires()
+        {
+            const double timeoutSeconds = 30.0;
+            var tracker = new DpsCombatTracker { WindowSeconds = 2.0 };
+            tracker.AddDamage(0.0, 100, timeoutSeconds, MinimumDurationSeconds);
+            tracker.AddDamage(20.0, 200, timeoutSeconds, MinimumDurationSeconds);
+            tracker.AddDamage(40.0, 300, timeoutSeconds, MinimumDurationSeconds);
+
+            tracker.WindowSeconds = DpsTrackingConstants.MaxWindowSeconds;
+            tracker.AddDamage(60.0, 400, timeoutSeconds, MinimumDurationSeconds);
+
+            DpsDisplaySnapshot snapshot = tracker.DisplaySnapshot;
+            Assert.That(snapshot.HitsInWindow, Is.EqualTo(4));
+            Assert.That(snapshot.DamageInWindow, Is.EqualTo(1_000));
+
+            tracker.UpdateState(60.25, timeoutSeconds, MinimumDurationSeconds);
+
+            Assert.That(snapshot.HitsInWindow, Is.EqualTo(3));
+            Assert.That(snapshot.DamageInWindow, Is.EqualTo(900));
+
+            tracker.UpdateState(90.0, timeoutSeconds, MinimumDurationSeconds);
+
+            Assert.That(snapshot.IsLastCombatResult, Is.True);
+            Assert.That(snapshot.HitsInWindow, Is.EqualTo(4));
+            Assert.That(snapshot.DamageInWindow, Is.EqualTo(1_000));
+        }
+
+        [Test]
         public void EndCombat_UsesSessionAggregateWhenRollingWindowIsEmpty()
         {
             var tracker = new DpsCombatTracker
@@ -301,9 +370,12 @@ namespace BetterDPSMeter.Tests.Combat
             tracker.AddDamage(10.0, 100, 2.0, MinimumDurationSeconds);
             tracker.AddDamage(10.0, 200, 2.0, MinimumDurationSeconds);
 
-            tracker.UpdateState(12.0, 2.0, MinimumDurationSeconds);
-
             DpsDisplaySnapshot snapshot = tracker.DisplaySnapshot;
+            Assert.That(snapshot.HitsInWindow, Is.EqualTo(2));
+            Assert.That(snapshot.DamageInWindow, Is.EqualTo(300));
+            Assert.That(snapshot.IsLastCombatResult, Is.False);
+
+            tracker.UpdateState(12.0, 2.0, MinimumDurationSeconds);
 
             Assert.That(snapshot.HitsInWindow, Is.EqualTo(2));
             Assert.That(snapshot.DamageInWindow, Is.EqualTo(300));

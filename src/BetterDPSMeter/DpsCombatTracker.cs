@@ -7,12 +7,15 @@ namespace BetterDPSMeter
     {
         private readonly Queue<(double time, int damage)> _damageEvents = new Queue<(double time, int damage)>();
         private readonly DpsDisplaySnapshot _displaySnapshot = new DpsDisplaySnapshot();
+        private readonly Queue<(double time, int damage)> _windowEvents = new Queue<(double time, int damage)>();
+        private double _appliedWindowSeconds;
 
         private double _combatStartTime = -1.0;
         private bool _isCombatActive;
         private double _lastHitTime = -1.0;
-        private int _sessionHitCount;
-        private int _sessionTotalDamage;
+        private long _sessionHitCount;
+        private long _sessionTotalDamage;
+        private long _windowDamage;
 
         public double WindowSeconds { get; set; } = 10.0;
         public double LastHitTime => _lastHitTime;
@@ -33,8 +36,9 @@ namespace BetterDPSMeter
             _sessionTotalDamage += damage;
             _sessionHitCount++;
 
-            _damageEvents.Enqueue((now, damage));
-            TrimHistory(now);
+            (double time, int damage) hit = (time: now, damage);
+            _damageEvents.Enqueue(hit);
+            AddToWindow(hit);
 
             RebuildSnapshot(now, timeoutSeconds);
         }
@@ -55,14 +59,11 @@ namespace BetterDPSMeter
 
         private void StartCombat(double now)
         {
-            _damageEvents.Clear();
             _isCombatActive = true;
             _combatStartTime = now;
-            _sessionHitCount = 0;
-            _sessionTotalDamage = 0;
+            _appliedWindowSeconds = WindowSeconds;
 
             _displaySnapshot.Clear();
-            _displaySnapshot.IsLastCombatResult = false;
         }
 
         private void EndCombat(double minimumDurationSeconds)
@@ -70,6 +71,8 @@ namespace BetterDPSMeter
             BuildFinalSnapshot(minimumDurationSeconds);
 
             _damageEvents.Clear();
+            _windowEvents.Clear();
+            _windowDamage = 0;
             _combatStartTime = -1.0;
             _lastHitTime = -1.0;
             _sessionHitCount = 0;
@@ -88,7 +91,7 @@ namespace BetterDPSMeter
             if (finalDuration < 0.0)
                 finalDuration = 0.0;
 
-            int averageDps = finalDuration > 0.0 ? (int)Math.Round(_sessionTotalDamage / finalDuration) : 0;
+            long averageDps = finalDuration > 0.0 ? (long)Math.Round(_sessionTotalDamage / finalDuration) : 0;
 
             _displaySnapshot.AverageDps = averageDps;
             _displaySnapshot.HitsInWindow = _sessionHitCount;
@@ -100,27 +103,15 @@ namespace BetterDPSMeter
 
         private void RebuildSnapshot(double now, double timeoutSeconds)
         {
-            TrimHistory(now);
-
-            var totalDamage = 0;
-            var hitCount = 0;
-
-            foreach ((double time, int damage) damageEvent in _damageEvents)
-            {
-                if (now - damageEvent.time > WindowSeconds)
-                    continue;
-
-                totalDamage += damageEvent.damage;
-                hitCount++;
-            }
+            UpdateWindow(now);
 
             double coveredSeconds = GetCoveredSeconds(now);
 
-            int averageDps = coveredSeconds > 0.0 ? (int)Math.Round(totalDamage / coveredSeconds) : 0;
+            long averageDps = coveredSeconds > 0.0 ? (long)Math.Round(_windowDamage / coveredSeconds) : 0;
 
             _displaySnapshot.AverageDps = averageDps;
-            _displaySnapshot.HitsInWindow = hitCount;
-            _displaySnapshot.DamageInWindow = totalDamage;
+            _displaySnapshot.HitsInWindow = _windowEvents.Count;
+            _displaySnapshot.DamageInWindow = _windowDamage;
             _displaySnapshot.WindowSecondsCovered = coveredSeconds;
             _displaySnapshot.TimeoutRemaining = GetCombatTimeoutRemaining(now, timeoutSeconds);
             _displaySnapshot.IsLastCombatResult = false;
@@ -148,11 +139,35 @@ namespace BetterDPSMeter
             return coveredSeconds > 0.0 ? coveredSeconds : 0.0;
         }
 
-        private void TrimHistory(double now)
+        private void AddToWindow((double time, int damage) hit)
+        {
+            _windowEvents.Enqueue(hit);
+            _windowDamage += hit.damage;
+        }
+
+        private void UpdateWindow(double now)
         {
             while (_damageEvents.Count > 0 && now - _damageEvents.Peek().time > DpsTrackingConstants.MaxWindowSeconds)
             {
                 _damageEvents.Dequeue();
+            }
+
+            double windowSeconds = Math.Min(WindowSeconds, DpsTrackingConstants.MaxWindowSeconds);
+            if (windowSeconds > _appliedWindowSeconds)
+            {
+                _windowEvents.Clear();
+                _windowDamage = 0;
+                foreach ((double time, int damage) hit in _damageEvents)
+                {
+                    if (now - hit.time <= windowSeconds)
+                        AddToWindow(hit);
+                }
+            }
+
+            _appliedWindowSeconds = windowSeconds;
+            while (_windowEvents.Count > 0 && now - _windowEvents.Peek().time > windowSeconds)
+            {
+                _windowDamage -= _windowEvents.Dequeue().damage;
             }
         }
     }

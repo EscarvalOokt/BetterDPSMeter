@@ -2,9 +2,9 @@ namespace BetterDPSMeter
 {
     internal sealed class DpsDisplaySnapshot
     {
-        public int AverageDps { get; set; }
-        public int HitsInWindow { get; set; }
-        public int DamageInWindow { get; set; }
+        public long AverageDps { get; set; }
+        public long HitsInWindow { get; set; }
+        public long DamageInWindow { get; set; }
         public double WindowSecondsCovered { get; set; }
         public double TimeoutRemaining { get; set; }
         public bool IsLastCombatResult { get; set; }
